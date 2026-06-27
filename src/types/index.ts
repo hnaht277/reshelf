@@ -64,9 +64,23 @@ export type CheckoutResult = {
   total: number;
 };
 
+export type OrderStatus = "ready" | "delivered" | "cancelled";
+
+export type Order = {
+  id: string;
+  placedAt: string;
+  status: OrderStatus;
+  items: CartItem[];
+  total: number;
+  co2Saved: number;
+};
+
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<TabParamList> | undefined;
   ProductDetail: { productId: string };
+  OrderHistory: undefined;
+  OrderDetail: { orderId: string };
+  SavedItems: undefined;
 };
 
 export type TabParamList = {

@@ -21,6 +21,7 @@ import { colors, radius, shadows, spacing, type } from "@/constants/theme";
 import { getProductById } from "@/services/api";
 import { useCartStore } from "@/store/useCartStore";
 import { useToastStore } from "@/store/useToastStore";
+import { useSavedStore } from "@/store/useSavedStore";
 import type { Product, RootStackParamList } from "@/types";
 import {
   formatCurrency,
@@ -38,7 +39,8 @@ export function ProductDetailScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [expanded, setExpanded] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const saved = useSavedStore((state) => state.productIds.includes(route.params.productId));
+  const toggleSaved = useSavedStore((state) => state.toggle);
   const add = useCartStore((state) => state.add);
   const showToast = useToastStore((state) => state.show);
   const insets = useSafeAreaInsets();
@@ -89,7 +91,7 @@ export function ProductDetailScreen({ navigation, route }: Props) {
             <Pressable
               accessibilityLabel="Save product"
               accessibilityRole="button"
-              onPress={() => setSaved((current) => !current)}
+              onPress={() => toggleSaved(product.id)}
               style={styles.circleButton}
             >
               <Heart

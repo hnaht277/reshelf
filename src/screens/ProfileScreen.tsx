@@ -1,14 +1,21 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Award, ChevronRight, CircleHelp, Heart, History, Leaf, Settings, ShieldCheck, Sparkles, UserRound } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Award, ChevronRight, CircleHelp, Heart, History, Leaf, Settings, ShieldCheck, Sparkles, UserRound, type LucideIcon } from "lucide-react-native";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
 import { useUserStore } from "@/store/useUserStore";
 import { formatCurrency } from "@/utils/format";
+import type { RootStackParamList } from "@/types";
 
-const quickLinks = [
-  { label: "Order History", icon: History },
-  { label: "Saved Items", icon: Heart },
+const quickLinks: Array<{
+  label: string;
+  icon: LucideIcon;
+  route?: "OrderHistory" | "SavedItems";
+}> = [
+  { label: "Order History", icon: History, route: "OrderHistory" as const },
+  { label: "Saved Items", icon: Heart, route: "SavedItems" as const },
   { label: "Settings", icon: Settings },
   { label: "Help", icon: CircleHelp },
   { label: "About Reshelf", icon: Leaf }
@@ -21,6 +28,7 @@ const badges = [
 ];
 
 export function ProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const user = useUserStore((state) => state.user);
   const impact = useUserStore((state) => state.impact);
 
@@ -87,6 +95,9 @@ export function ProfileScreen() {
                   key={link.label}
                   accessibilityLabel={link.label}
                   accessibilityRole="button"
+                  onPress={() => {
+                    if (link.route) navigation.navigate(link.route);
+                  }}
                   style={styles.link}
                 >
                   <View style={styles.linkIcon}>
