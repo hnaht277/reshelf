@@ -1,23 +1,22 @@
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Leaf, ShoppingBag } from "lucide-react-native";
-import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CartItemRow } from "@/components/CartItemRow";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
-import { checkout } from "@/services/api";
 import { useCartStore } from "@/store/useCartStore";
-import { useToastStore } from "@/store/useToastStore";
-import { useUserStore } from "@/store/useUserStore";
-import type { CheckoutResult } from "@/types";
+import type { RootStackParamList } from "@/types";
 import { formatCurrency } from "@/utils/format";
 
 const DELIVERY_FEE = 20000;
 const ECO_DISCOUNT = 5000;
 
 export function CartScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const items = useCartStore((state) => state.items);
   const updateQty = useCartStore((state) => state.updateQty);
   const remove = useCartStore((state) => state.remove);
@@ -26,22 +25,8 @@ export function CartScreen() {
   const savings = useCartStore((state) => state.savings());
   const itemCount = useCartStore((state) => state.itemCount());
   const co2Saved = useCartStore((state) => state.co2Saved());
-  const recordCheckout = useUserStore((state) => state.recordCheckout);
-  const showToast = useToastStore((state) => state.show);
-  const [checkingOut, setCheckingOut] = useState(false);
-  const [success, setSuccess] = useState<CheckoutResult | undefined>();
 
   const total = Math.max(0, subtotal + DELIVERY_FEE - ECO_DISCOUNT);
-
-  const handleCheckout = async () => {
-    setCheckingOut(true);
-    const result = await checkout(items);
-    recordCheckout(result.itemsRescued, result.co2Saved, savings);
-    clear();
-    setCheckingOut(false);
-    setSuccess({ ...result, total });
-    showToast("Checkout complete", `${result.itemsRescued} items rescued`);
-  };
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -100,29 +85,13 @@ export function CartScreen() {
 
             <Button
               label="Proceed to Checkout"
-              onPress={handleCheckout}
-              loading={checkingOut}
+              onPress={() => navigation.navigate("Checkout")}
               disabled={items.length === 0}
             />
           </>
         )}
       </ScrollView>
 
-      <Modal visible={Boolean(success)} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.successModal}>
-            <View style={styles.successIcon}>
-              <Leaf color={colors.primary[700]} size={42} strokeWidth={1.5} />
-            </View>
-            <Text style={styles.successTitle}>Rescue confirmed</Text>
-            <Text style={styles.successBody}>
-              Order {success?.orderId} saved {success?.itemsRescued} items and about{" "}
-              {success?.co2Saved.toFixed(1)} kg CO2.
-            </Text>
-            <Button label="Done" onPress={() => setSuccess(undefined)} />
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -229,37 +198,4 @@ const styles = StyleSheet.create({
     ...type.bodySm,
     color: colors.impact
   },
-  modalBackdrop: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.lg,
-    backgroundColor: "rgba(0,0,0,0.35)"
-  },
-  successModal: {
-    width: "100%",
-    gap: spacing.base,
-    padding: spacing.xl,
-    borderRadius: radius["2xl"],
-    backgroundColor: colors.neutral[0],
-    alignItems: "center",
-    ...shadows.xl
-  },
-  successIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primary[50]
-  },
-  successTitle: {
-    ...type.headingLg,
-    color: colors.neutral[900]
-  },
-  successBody: {
-    ...type.bodyMd,
-    color: colors.neutral[600],
-    textAlign: "center"
-  }
 });

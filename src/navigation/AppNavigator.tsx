@@ -16,6 +16,7 @@ import { SavedItemsScreen } from "@/screens/SavedItemsScreen";
 import { SettingsScreen } from "@/screens/SettingsScreen";
 import { HelpScreen } from "@/screens/HelpScreen";
 import { AboutScreen } from "@/screens/AboutScreen";
+import { CheckoutScreen } from "@/screens/CheckoutScreen";
 import { useCartStore } from "@/store/useCartStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import type { RootStackParamList, TabParamList } from "@/types";
@@ -36,6 +37,7 @@ export function AppNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={Tabs} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
         <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
         <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
         <Stack.Screen name="SavedItems" component={SavedItemsScreen} />

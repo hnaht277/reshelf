@@ -78,6 +78,7 @@ export type Order = {
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<TabParamList> | undefined;
   ProductDetail: { productId: string };
+  Checkout: undefined;
   OrderHistory: undefined;
   OrderDetail: { orderId: string };
   SavedItems: undefined;
