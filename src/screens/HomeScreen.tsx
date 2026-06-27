@@ -1,6 +1,6 @@
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Grid2X2, LayoutList, Leaf } from "lucide-react-native";
+import { ChevronDown, ChevronUp, Grid2X2, LayoutList, Leaf, Sparkles } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
@@ -19,12 +19,14 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductSkeletonGrid } from "@/components/Skeleton";
 import { SearchBar } from "@/components/SearchBar";
 import { categories, colors, radius, shadows, spacing, type } from "@/constants/theme";
+import { orders } from "@/data/orders";
 import { products as allProducts } from "@/data/products";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProductStore } from "@/store/useProductStore";
 import { useUserStore } from "@/store/useUserStore";
 import type { Product, RootStackParamList } from "@/types";
 import { daysUntil } from "@/utils/format";
+import { getProductSuggestions, type ProductSuggestion } from "@/utils/recommendations";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -60,6 +62,10 @@ export function HomeScreen() {
     () => allProducts.filter((product) => daysUntil(product.expiryDate) === 0),
     []
   );
+  const suggestions = useMemo(
+    () => getProductSuggestions(allProducts, orders),
+    []
+  );
 
   const numColumns = layout === "grid" && width >= 720 ? 3 : layout === "grid" ? 2 : 1;
   const showSkeletons = loading && products.length === 0;
@@ -93,6 +99,7 @@ export function HomeScreen() {
             recentSearches={recentSearches}
             category={category}
             setCategory={setCategory}
+            suggestions={suggestions}
             expiringToday={expiringToday}
             layout={layout}
             setLayout={setLayout}
@@ -140,6 +147,7 @@ type HeaderProps = {
   recentSearches: string[];
   category: string;
   setCategory: (category: (typeof categories)[number]) => void;
+  suggestions: ProductSuggestion[];
   expiringToday: Product[];
   layout: "grid" | "list";
   setLayout: (layout: "grid" | "list") => void;
@@ -154,6 +162,7 @@ function Header({
   recentSearches,
   category,
   setCategory,
+  suggestions,
   expiringToday,
   layout,
   setLayout,
@@ -206,6 +215,40 @@ function Header({
         ))}
       </ScrollView>
 
+      {suggestions.length > 0 ? (
+        <View style={styles.suggestionSection}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.aiTitleGroup}>
+              <View style={styles.aiIcon}>
+                <Sparkles color={colors.impact} size={18} strokeWidth={1.75} />
+              </View>
+              <View>
+                <Text style={styles.sectionTitle}>AI picks for you</Text>
+                <Text style={styles.aiSubtitle}>Tailored to your order history</Text>
+              </View>
+            </View>
+            <View style={styles.aiBadge}>
+              <Text style={styles.aiBadgeText}>PERSONALIZED</Text>
+            </View>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.horizontalList}
+            contentContainerStyle={[styles.carousel, styles.suggestionCarousel]}
+          >
+            {suggestions.map(({ product, reason }) => (
+              <PersonalizedSuggestionCard
+                key={product.id}
+                product={product}
+                reason={reason}
+                onPress={() => openProduct(product.id)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
+
       <View style={styles.sectionTitleRow}>
         <Text style={styles.sectionTitle}>Expiring Today</Text>
         <Text style={styles.sectionHint}>Calm urgency, real savings</Text>
@@ -244,6 +287,40 @@ function Header({
           </Pressable>
         </View>
       </View>
+    </View>
+  );
+}
+
+function PersonalizedSuggestionCard({
+  product,
+  reason,
+  onPress
+}: {
+  product: Product;
+  reason: string;
+  onPress: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const ReasonChevron = expanded ? ChevronUp : ChevronDown;
+
+  return (
+    <View style={styles.suggestionCard}>
+      <ProductCard product={product} grow={false} onPress={onPress} />
+      <Pressable
+        accessibilityLabel={`${expanded ? "Hide" : "Show"} why ${product.name} was recommended`}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        onPress={() => setExpanded((current) => !current)}
+        style={({ pressed }) => [styles.reasonButton, pressed && styles.reasonButtonPressed]}
+      >
+        <View style={styles.reasonSummary}>
+          <Sparkles color={colors.impact} size={13} strokeWidth={1.75} />
+          <Text numberOfLines={expanded ? undefined : 1} style={styles.reasonText}>
+            {reason}
+          </Text>
+          <ReasonChevron color={colors.impact} size={17} strokeWidth={1.75} />
+        </View>
+      </Pressable>
     </View>
   );
 }
@@ -334,13 +411,74 @@ const styles = StyleSheet.create({
     ...type.bodySm,
     color: colors.neutral[500]
   },
+  suggestionSection: {
+    gap: spacing.md,
+    paddingVertical: spacing.xs
+  },
+  aiTitleGroup: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm
+  },
+  aiIcon: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.full,
+    backgroundColor: colors.impactLight
+  },
+  aiSubtitle: {
+    ...type.bodySm,
+    color: colors.neutral[500]
+  },
+  aiBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+    backgroundColor: colors.impactLight
+  },
+  aiBadgeText: {
+    ...type.badge,
+    color: colors.impact
+  },
   carousel: {
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xs
   },
+  suggestionCarousel: {
+    alignItems: "flex-start"
+  },
   carouselCard: {
     width: 190
+  },
+  suggestionCard: {
+    width: 190,
+    gap: spacing.sm,
+    alignSelf: "flex-start"
+  },
+  reasonButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.impactLight
+  },
+  reasonButtonPressed: {
+    opacity: 0.72
+  },
+  reasonSummary: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.xs
+  },
+  reasonText: {
+    ...type.bodySm,
+    color: colors.impact,
+    flex: 1
   },
   layoutToggle: {
     height: 40,

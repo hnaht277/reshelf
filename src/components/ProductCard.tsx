@@ -8,10 +8,11 @@ import { formatCurrency, formatTimeLeft, getFreshnessStatus, shortDistance } fro
 type ProductCardProps = {
   product: Product;
   mode?: "grid" | "list";
+  grow?: boolean;
   onPress: () => void;
 };
 
-export function ProductCard({ product, mode = "grid", onPress }: ProductCardProps) {
+export function ProductCard({ product, mode = "grid", grow = true, onPress }: ProductCardProps) {
   if (mode === "list") {
     return (
       <Pressable
@@ -53,7 +54,7 @@ export function ProductCard({ product, mode = "grid", onPress }: ProductCardProp
       accessibilityLabel={`Open ${product.name}`}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.gridCard, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.gridCard, !grow && styles.noGrow, pressed && styles.pressed]}
     >
       <View>
         <Image source={{ uri: product.imageUrl }} style={styles.gridImage} />
@@ -90,6 +91,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[0],
     overflow: "hidden",
     ...shadows.md
+  },
+  noGrow: {
+    flex: 0
   },
   listCard: {
     minHeight: 120,
