@@ -42,7 +42,7 @@ export function ExploreScreen() {
   }, [category, debounced]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <FlatList<Product>
         data={filtered}
         keyExtractor={(item) => item.id}

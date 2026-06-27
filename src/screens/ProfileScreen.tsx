@@ -25,7 +25,7 @@ export function ProfileScreen() {
   const impact = useUserStore((state) => state.impact);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.userCard}>
           <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />

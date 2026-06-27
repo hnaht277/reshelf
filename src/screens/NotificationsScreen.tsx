@@ -23,7 +23,7 @@ export function NotificationsScreen() {
   const grouped = useMemo(() => groupNotifications(notifications), [notifications]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={

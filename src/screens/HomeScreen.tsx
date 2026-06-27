@@ -65,7 +65,7 @@ export function HomeScreen() {
   const showSkeletons = loading && products.length === 0;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <FlatList
         key={`${layout}-${numColumns}`}
         data={showSkeletons ? [] : products}
