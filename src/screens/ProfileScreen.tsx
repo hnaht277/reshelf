@@ -12,13 +12,13 @@ import type { RootStackParamList } from "@/types";
 const quickLinks: Array<{
   label: string;
   icon: LucideIcon;
-  route?: "OrderHistory" | "SavedItems";
+  route: "OrderHistory" | "SavedItems" | "Settings" | "Help" | "About";
 }> = [
   { label: "Order History", icon: History, route: "OrderHistory" as const },
   { label: "Saved Items", icon: Heart, route: "SavedItems" as const },
-  { label: "Settings", icon: Settings },
-  { label: "Help", icon: CircleHelp },
-  { label: "About Reshelf", icon: Leaf }
+  { label: "Settings", icon: Settings, route: "Settings" },
+  { label: "Help", icon: CircleHelp, route: "Help" },
+  { label: "About Reshelf", icon: Leaf, route: "About" }
 ];
 
 const badges = [
@@ -96,7 +96,7 @@ export function ProfileScreen() {
                   accessibilityLabel={link.label}
                   accessibilityRole="button"
                   onPress={() => {
-                    if (link.route) navigation.navigate(link.route);
+                    navigation.navigate(link.route);
                   }}
                   style={styles.link}
                 >

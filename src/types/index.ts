@@ -81,6 +81,9 @@ export type RootStackParamList = {
   OrderHistory: undefined;
   OrderDetail: { orderId: string };
   SavedItems: undefined;
+  Settings: undefined;
+  Help: undefined;
+  About: undefined;
 };
 
 export type TabParamList = {

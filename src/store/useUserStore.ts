@@ -16,6 +16,9 @@ type Impact = {
 
 type Preferences = {
   layout: "grid" | "list";
+  priceDropAlerts: boolean;
+  expiryReminders: boolean;
+  impactUpdates: boolean;
 };
 
 type UserStore = {
@@ -23,6 +26,10 @@ type UserStore = {
   impact: Impact;
   preferences: Preferences;
   setLayout: (layout: Preferences["layout"]) => void;
+  setPreference: (
+    preference: Exclude<keyof Preferences, "layout">,
+    enabled: boolean
+  ) => void;
   recordCheckout: (itemsRescued: number, co2Saved: number, moneySaved: number) => void;
 };
 
@@ -40,9 +47,16 @@ export const useUserStore = create<UserStore>((set) => ({
     streakDays: 8
   },
   preferences: {
-    layout: "grid"
+    layout: "grid",
+    priceDropAlerts: true,
+    expiryReminders: true,
+    impactUpdates: false
   },
   setLayout: (layout) => set((state) => ({ preferences: { ...state.preferences, layout } })),
+  setPreference: (preference, enabled) =>
+    set((state) => ({
+      preferences: { ...state.preferences, [preference]: enabled }
+    })),
   recordCheckout: (itemsRescued, co2Saved, moneySaved) =>
     set((state) => ({
       impact: {

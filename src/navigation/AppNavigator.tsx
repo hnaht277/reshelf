@@ -13,6 +13,9 @@ import { ProfileScreen } from "@/screens/ProfileScreen";
 import { OrderHistoryScreen } from "@/screens/OrderHistoryScreen";
 import { OrderDetailScreen } from "@/screens/OrderDetailScreen";
 import { SavedItemsScreen } from "@/screens/SavedItemsScreen";
+import { SettingsScreen } from "@/screens/SettingsScreen";
+import { HelpScreen } from "@/screens/HelpScreen";
+import { AboutScreen } from "@/screens/AboutScreen";
 import { useCartStore } from "@/store/useCartStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import type { RootStackParamList, TabParamList } from "@/types";
@@ -29,6 +32,9 @@ export function AppNavigator() {
         <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
         <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
         <Stack.Screen name="SavedItems" component={SavedItemsScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Help" component={HelpScreen} />
+        <Stack.Screen name="About" component={AboutScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
