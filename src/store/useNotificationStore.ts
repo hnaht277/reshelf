@@ -9,6 +9,7 @@ type NotificationStore = {
   fetch: () => Promise<void>;
   markAllRead: () => void;
   dismiss: (id: string) => void;
+  restore: (notification: AppNotification, index: number) => void;
   markAsRead: (id: string) => void;
 };
 
@@ -29,6 +30,15 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => ({
       notifications: state.notifications.filter((notification) => notification.id !== id)
     })),
+  restore: (notification, index) =>
+    set((state) => {
+      if (state.notifications.some((item) => item.id === notification.id)) return state;
+
+      const notifications = [...state.notifications];
+      const restoredIndex = Math.max(0, Math.min(index, notifications.length));
+      notifications.splice(restoredIndex, 0, notification);
+      return { notifications };
+    }),
   markAsRead: (id) =>
     set((state) => ({
       notifications: state.notifications.map((notification) =>

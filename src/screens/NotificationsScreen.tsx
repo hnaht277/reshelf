@@ -1,10 +1,12 @@
 import { Bell, BellRing, CheckCheck, CircleDollarSign, Leaf, PackageCheck, Tag, Trash2 } from "lucide-react-native";
 import { useEffect, useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EmptyState } from "@/components/EmptyState";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import { useToastStore } from "@/store/useToastStore";
 import type { AppNotification, NotificationType } from "@/types";
 
 export function NotificationsScreen() {
@@ -14,13 +16,24 @@ export function NotificationsScreen() {
   const markAllRead = useNotificationStore((state) => state.markAllRead);
   const markAsRead = useNotificationStore((state) => state.markAsRead);
   const dismiss = useNotificationStore((state) => state.dismiss);
+  const restore = useNotificationStore((state) => state.restore);
   const unreadCount = useNotificationStore((state) => state.unreadCount());
+  const showToast = useToastStore((state) => state.show);
 
   useEffect(() => {
     void fetch();
   }, [fetch]);
 
   const grouped = useMemo(() => groupNotifications(notifications), [notifications]);
+
+  const dismissWithUndo = (notification: AppNotification) => {
+    const index = notifications.findIndex((item) => item.id === notification.id);
+    dismiss(notification.id);
+    showToast("Notification deleted", notification.title, {
+      label: "Undo",
+      onPress: () => restore(notification, index)
+    });
+  };
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -59,7 +72,7 @@ export function NotificationsScreen() {
                   key={notification.id}
                   notification={notification}
                   onRead={() => markAsRead(notification.id)}
-                  onDismiss={() => dismiss(notification.id)}
+                  onDismiss={() => dismissWithUndo(notification)}
                 />
               ))}
             </View>
@@ -83,35 +96,45 @@ function NotificationRow({
   const palette = notificationPalette[notification.type];
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={notification.title}
-      onPress={onRead}
-      style={[
-        styles.notification,
-        notification.read ? styles.read : styles.unread,
-        !notification.read && { borderLeftColor: colors.primary[500] }
-      ]}
+    <Swipeable
+      containerStyle={styles.swipeable}
+      friction={2}
+      rightThreshold={40}
+      overshootRight={false}
+      renderRightActions={() => (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Delete ${notification.title}`}
+          onPress={onDismiss}
+          style={styles.deleteAction}
+        >
+          <Trash2 color={colors.neutral[0]} size={22} strokeWidth={1.75} />
+          <Text style={styles.deleteText}>Delete</Text>
+        </Pressable>
+      )}
     >
-      <View style={[styles.notificationIcon, { backgroundColor: palette.bg }]}>
-        <Icon color={palette.color} size={22} strokeWidth={1.5} />
-      </View>
-      <View style={styles.notificationBody}>
-        <View style={styles.notificationTop}>
-          <Text style={styles.notificationTitle}>{notification.title}</Text>
-          <Text style={styles.time}>{relativeTime(notification.createdAt)}</Text>
-        </View>
-        <Text style={styles.notificationText}>{notification.body}</Text>
-      </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Dismiss ${notification.title}`}
-        onPress={onDismiss}
-        style={styles.dismiss}
+        accessibilityLabel={notification.title}
+        onPress={onRead}
+        style={[
+          styles.notification,
+          notification.read ? styles.read : styles.unread,
+          !notification.read && { borderLeftColor: colors.primary[500] }
+        ]}
       >
-        <Trash2 color={colors.neutral[400]} size={18} strokeWidth={1.5} />
+        <View style={[styles.notificationIcon, { backgroundColor: palette.bg }]}>
+          <Icon color={palette.color} size={22} strokeWidth={1.5} />
+        </View>
+        <View style={styles.notificationBody}>
+          <View style={styles.notificationTop}>
+            <Text style={styles.notificationTitle}>{notification.title}</Text>
+            <Text style={styles.time}>{relativeTime(notification.createdAt)}</Text>
+          </View>
+          <Text style={styles.notificationText}>{notification.body}</Text>
+        </View>
       </Pressable>
-    </Pressable>
+    </Swipeable>
   );
 }
 
@@ -196,13 +219,16 @@ const styles = StyleSheet.create({
     color: colors.neutral[800],
     marginTop: spacing.sm
   },
+  swipeable: {
+    borderRadius: radius.md,
+    ...shadows.md
+  },
   notification: {
     flexDirection: "row",
     gap: spacing.md,
     padding: spacing.md,
     borderRadius: radius.md,
-    borderLeftWidth: 3,
-    ...shadows.md
+    borderLeftWidth: 3
   },
   unread: {
     backgroundColor: colors.primary[50]
@@ -241,12 +267,16 @@ const styles = StyleSheet.create({
     ...type.bodySm,
     color: colors.neutral[600]
   },
-  dismiss: {
-    width: 44,
-    height: 44,
+  deleteAction: {
+    width: 84,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: -12,
-    marginTop: -10
+    gap: spacing.xs,
+    borderRadius: radius.md,
+    backgroundColor: colors.danger
+  },
+  deleteText: {
+    ...type.badge,
+    color: colors.neutral[0]
   }
 });

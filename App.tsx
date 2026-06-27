@@ -15,6 +15,7 @@ import {
 } from "@expo-google-fonts/outfit";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ToastHost } from "@/components/ToastHost";
 import { colors } from "@/constants/theme";
@@ -41,15 +42,20 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <AppNavigator />
-      <ToastHost />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <AppNavigator />
+        <ToastHost />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1
+  },
   loading: {
     flex: 1,
     alignItems: "center",

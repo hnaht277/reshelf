@@ -1,6 +1,6 @@
 import { CheckCircle2 } from "lucide-react-native";
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
 import { useToastStore } from "@/store/useToastStore";
@@ -32,9 +32,14 @@ export function ToastHost() {
 
   if (!toast) return null;
 
+  const runAction = () => {
+    toast.action?.onPress();
+    clear();
+  };
+
   return (
     <Animated.View
-      pointerEvents="none"
+      pointerEvents="box-none"
       style={[
         styles.wrap,
         { top: insets.top + spacing.sm, transform: [{ translateY }], opacity }
@@ -46,6 +51,17 @@ export function ToastHost() {
           <Text style={styles.title}>{toast.title}</Text>
           {toast.message ? <Text style={styles.message}>{toast.message}</Text> : null}
         </View>
+        {toast.action ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={toast.action.label}
+            hitSlop={8}
+            onPress={runAction}
+            style={styles.action}
+          >
+            <Text style={styles.actionText}>{toast.action.label}</Text>
+          </Pressable>
+        ) : null}
       </View>
     </Animated.View>
   );
@@ -78,5 +94,16 @@ const styles = StyleSheet.create({
   message: {
     ...type.bodySm,
     color: colors.neutral[200]
+  },
+  action: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  actionText: {
+    ...type.bodyMd,
+    fontFamily: "Inter_600SemiBold",
+    color: colors.primary[400]
   }
 });
