@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Reshelf",
+    "slug": "reshelf",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "reshelf",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#F0FDF4",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F0FDF4"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
