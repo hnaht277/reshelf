@@ -405,14 +405,15 @@ Use **Lucide React Native** (`lucide-react-native`) — clean, consistent line i
                 └───────────────────────────────┘
 ```
 
-- Position: top, below status bar
+- Position: bottom, slightly above the bottom navigation bar
 - Background: `neutral-900` with 95% opacity (dark glass)
 - Text: `neutral-0`
 - Border radius: `md` (12px)
 - Shadow: `xl`
 - Auto-dismiss: 2.5 seconds
-- Entry: slide down + fade in (300ms spring)
-- Exit: slide up + fade out (200ms ease-out)
+- Entry: slide up + fade in (300ms spring)
+- Exit: slide down + fade out (200ms ease-out)
+- Gesture: swipe down, left, or right to dismiss
 
 ---
 
@@ -477,8 +478,8 @@ Use **Lucide React Native** (`lucide-react-native`) — clean, consistent line i
 | Pull-to-refresh         | Custom leaf/sprout icon that "grows" as pulled       |
 | Skeleton shimmer        | Left-to-right gradient sweep, 1.5s, infinite loop   |
 | Impact counter          | Count-up from 0, 1.2s, ease-out deceleration        |
-| Toast appear            | Slide Y: -20 → 0, opacity 0 → 1, 300ms spring      |
-| Toast dismiss           | Slide Y: 0 → -20, opacity 1 → 0, 200ms ease-out    |
+| Toast appear            | Slide Y: 20 → 0, opacity 0 → 1, 300ms spring       |
+| Toast dismiss           | Slide Y: 0 → 80, opacity 1 → 0, 200ms ease-out     |
 | Tab icon active         | Scale `1.0 → 1.15 → 1.0`, 200ms spring              |
 | Freshness dot           | Gentle pulse `opacity 0.5 → 1.0`, 2s, infinite      |
 | Checkout success        | Confetti/leaf particle burst, 1.5s                   |
