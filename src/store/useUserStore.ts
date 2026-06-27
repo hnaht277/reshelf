@@ -1,10 +1,16 @@
 import { create } from "zustand";
 
+export type Gender = "Female" | "Male" | "Other" | "Prefer not to say";
+
 type User = {
   firstName: string;
   fullName: string;
   avatarUrl: string;
   memberSince: string;
+  birthDate: string;
+  gender: Gender;
+  phone: string;
+  email: string;
 };
 
 type Impact = {
@@ -25,6 +31,7 @@ type UserStore = {
   user: User;
   impact: Impact;
   preferences: Preferences;
+  updateUser: (profile: Omit<User, "firstName" | "memberSince">) => void;
   setLayout: (layout: Preferences["layout"]) => void;
   setPreference: (
     preference: Exclude<keyof Preferences, "layout">,
@@ -38,7 +45,11 @@ export const useUserStore = create<UserStore>((set) => ({
     firstName: "Maya",
     fullName: "Maya Nguyen",
     avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=180",
-    memberSince: "March 2026"
+    memberSince: "March 2026",
+    birthDate: "1997-08-16",
+    gender: "Female",
+    phone: "+1 415 555 0198",
+    email: "maya.nguyen@example.com"
   },
   impact: {
     mealsRescued: 12,
@@ -52,6 +63,14 @@ export const useUserStore = create<UserStore>((set) => ({
     expiryReminders: true,
     impactUpdates: false
   },
+  updateUser: (profile) =>
+    set((state) => ({
+      user: {
+        ...state.user,
+        ...profile,
+        firstName: profile.fullName.trim().split(/\s+/)[0] || state.user.firstName
+      }
+    })),
   setLayout: (layout) => set((state) => ({ preferences: { ...state.preferences, layout } })),
   setPreference: (preference, enabled) =>
     set((state) => ({
