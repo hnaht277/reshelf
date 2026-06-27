@@ -16,7 +16,7 @@ export const orders: Order[] = [
       { product: product("p-002"), quantity: 1 },
       { product: product("p-004"), quantity: 1 }
     ],
-    total: 9.74,
+    total: 79000,
     co2Saved: 2
   },
   {
@@ -28,7 +28,7 @@ export const orders: Order[] = [
       { product: product("p-003"), quantity: 1 },
       { product: product("p-011"), quantity: 1 }
     ],
-    total: 23.95,
+    total: 147000,
     co2Saved: 3.8
   },
   {
@@ -39,7 +39,7 @@ export const orders: Order[] = [
       { product: product("p-006"), quantity: 1 },
       { product: product("p-012"), quantity: 2 }
     ],
-    total: 12.48,
+    total: 93000,
     co2Saved: 2
   },
   {
@@ -47,7 +47,7 @@ export const orders: Order[] = [
     placedAt: "2026-05-21T12:00:00.000Z",
     status: "cancelled",
     items: [{ product: product("p-008"), quantity: 1 }],
-    total: 15.98,
+    total: 214000,
     co2Saved: 0
   }
 ];

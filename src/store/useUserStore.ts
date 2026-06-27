@@ -54,7 +54,7 @@ export const useUserStore = create<UserStore>((set) => ({
   impact: {
     mealsRescued: 12,
     co2SavedKg: 4.8,
-    moneySaved: 47,
+    moneySaved: 470000,
     streakDays: 8
   },
   preferences: {
@@ -81,7 +81,7 @@ export const useUserStore = create<UserStore>((set) => ({
       impact: {
         mealsRescued: state.impact.mealsRescued + itemsRescued,
         co2SavedKg: Number((state.impact.co2SavedKg + co2Saved).toFixed(1)),
-        moneySaved: Number((state.impact.moneySaved + moneySaved).toFixed(2)),
+        moneySaved: state.impact.moneySaved + moneySaved,
         streakDays: state.impact.streakDays + 1
       }
     }))

@@ -7,40 +7,40 @@ export const notifications: AppNotification[] = [
   {
     id: "n-001",
     type: "new-listing",
-    title: "New rescue bags nearby",
-    body: "Green Basket Market added 3 ripe produce bundles within 1 km.",
+    title: "Có túi thực phẩm mới gần bạn",
+    body: "Bách Hóa Xanh Nguyễn Trãi vừa thêm 3 phần rau củ chín tới trong bán kính 1 km.",
     createdAt: new Date(Date.now() - 2 * hour).toISOString(),
     read: false
   },
   {
     id: "n-002",
     type: "expiry-alert",
-    title: "Saved item expires tomorrow",
-    body: "Cold-Pressed Green Juice is still available, but only for a short window.",
+    title: "Sản phẩm đã lưu hết hạn vào ngày mai",
+    body: "Nước cam ép nguyên chất 500 ml vẫn còn hàng nhưng chỉ trong thời gian ngắn.",
     createdAt: new Date(Date.now() - 5 * hour).toISOString(),
     read: false
   },
   {
     id: "n-003",
     type: "price-drop",
-    title: "Price dropped on yogurt",
-    body: "Organic Greek Yogurt Pack is now 44% off at Urban Dairy Co.",
+    title: "Sữa chua vừa giảm giá",
+    body: "Lốc 4 hộp sữa chua có đường đang giảm 39% tại Nhà Sữa Việt.",
     createdAt: new Date(Date.now() - 22 * hour).toISOString(),
     read: true
   },
   {
     id: "n-004",
     type: "order-update",
-    title: "Pickup window confirmed",
-    body: "Your Morning Loaf Bakery order can be picked up between 5:00 and 7:00 PM.",
+    title: "Đã xác nhận giờ nhận hàng",
+    body: "Đơn hàng tại Tiệm Bánh Cô Ba có thể được nhận từ 17:00 đến 19:00.",
     createdAt: new Date(Date.now() - day - 2 * hour).toISOString(),
     read: true
   },
   {
     id: "n-005",
     type: "impact",
-    title: "Milestone reached",
-    body: "You have rescued 12 meals and saved 4.8 kg CO2 so far.",
+    title: "Bạn vừa đạt một cột mốc",
+    body: "Bạn đã giải cứu 12 phần thực phẩm và giảm 4,8 kg CO2 đến thời điểm này.",
     createdAt: new Date(Date.now() - 4 * day).toISOString(),
     read: false
   }

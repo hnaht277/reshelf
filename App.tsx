@@ -54,7 +54,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1
+    flex: 1,
+    backgroundColor: colors.neutral[50]
   },
   loading: {
     flex: 1,

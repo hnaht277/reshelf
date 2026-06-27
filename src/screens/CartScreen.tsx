@@ -14,8 +14,8 @@ import { useUserStore } from "@/store/useUserStore";
 import type { CheckoutResult } from "@/types";
 import { formatCurrency } from "@/utils/format";
 
-const DELIVERY_FEE = 2.99;
-const ECO_DISCOUNT = 1;
+const DELIVERY_FEE = 20000;
+const ECO_DISCOUNT = 5000;
 
 export function CartScreen() {
   const items = useCartStore((state) => state.items);

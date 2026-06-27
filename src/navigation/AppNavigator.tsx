@@ -1,9 +1,9 @@
-import { NavigationContainer } from "@react-navigation/native";
+import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Bell, Home, Search, ShoppingCart, User } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, radius, shadows, type } from "@/constants/theme";
+import { colors, radius, type } from "@/constants/theme";
 import { CartScreen } from "@/screens/CartScreen";
 import { ExploreScreen } from "@/screens/ExploreScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
@@ -22,10 +22,17 @@ import type { RootStackParamList, TabParamList } from "@/types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "transparent"
+  }
+};
 
 export function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={Tabs} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
@@ -57,7 +64,7 @@ function Tabs() {
           const Icon = routeIcons[route.name];
           return (
             <View style={[styles.iconWrap, focused && styles.activeIconWrap]}>
-              <Icon color={color} size={26} strokeWidth={focused ? 2 : 1.5} />
+              <Icon color={color} size={24} strokeWidth={focused ? 2.5 : 2} />
               {route.name === "Cart" && itemCount > 0 ? <BadgeCount count={itemCount} /> : null}
               {route.name === "Notifications" && unreadCount > 0 ? (
                 <BadgeCount count={unreadCount} />
@@ -95,17 +102,26 @@ function BadgeCount({ count }: { count: number }) {
 
 const styles = StyleSheet.create({
   tabBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
     minHeight: 72,
     paddingTop: 8,
     paddingBottom: 12,
-    borderTopWidth: 0,
+    borderWidth: 0,
     borderTopLeftRadius: radius["2xl"],
     borderTopRightRadius: radius["2xl"],
     backgroundColor: colors.neutral[0],
-    ...shadows.xl
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12
   },
   tabLabel: {
-    ...type.badge
+    ...type.badge,
+    fontFamily: "Inter_400Regular"
   },
   iconWrap: {
     minWidth: 44,
@@ -114,7 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   activeIconWrap: {
-    transform: [{ scale: 1.08 }]
+    transform: [{ scale: 1.04 }]
   },
   badge: {
     position: "absolute",

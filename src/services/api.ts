@@ -58,7 +58,7 @@ export async function getNotifications(): Promise<AppNotification[]> {
 
 export async function checkout(cart: CartItem[]): Promise<CheckoutResult> {
   await delay();
-  const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + 1.99;
+  const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + 15000;
   return {
     orderId: `RS-${Math.floor(100000 + Math.random() * 900000)}`,
     itemsRescued: cart.reduce((sum, item) => sum + item.quantity, 0),

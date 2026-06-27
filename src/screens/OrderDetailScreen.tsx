@@ -144,7 +144,7 @@ export function OrderDetailScreen({ navigation, route }: Props) {
               <Text style={styles.storeName}>{seller.name}</Text>
               <View style={styles.addressRow}>
                 <MapPin color={colors.neutral[400]} size={14} strokeWidth={1.5} />
-                <Text style={styles.address}>128 Greenway Street · {seller.distanceKm.toFixed(1)} km away</Text>
+                <Text style={styles.address}>128 Nguyễn Trãi, Quận 5 · cách {seller.distanceKm.toFixed(1)} km</Text>
               </View>
             </View>
           </View>

@@ -1,8 +1,9 @@
 import type { FreshnessStatus, Product } from "@/types";
 
-export const currency = new Intl.NumberFormat("en-US", {
+export const currency = new Intl.NumberFormat("vi-VN", {
   style: "currency",
-  currency: "USD"
+  currency: "VND",
+  maximumFractionDigits: 0
 });
 
 export function formatCurrency(value: number): string {
