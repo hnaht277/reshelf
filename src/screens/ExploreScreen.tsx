@@ -69,6 +69,7 @@ export function ExploreScreen() {
               horizontal
               keyExtractor={(item) => item}
               showsHorizontalScrollIndicator={false}
+              style={styles.horizontalList}
               contentContainerStyle={styles.chips}
               renderItem={({ item }) => (
                 <Chip label={item} active={category === item} onPress={() => setCategory(item)} />
@@ -124,7 +125,11 @@ const styles = StyleSheet.create({
     color: colors.neutral[500]
   },
   chips: {
-    gap: spacing.sm
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg
+  },
+  horizontalList: {
+    marginHorizontal: -spacing.lg
   },
   separator: {
     height: spacing.md

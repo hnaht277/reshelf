@@ -190,7 +190,12 @@ function Header({
         </View>
       ) : null}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.horizontalList}
+        contentContainerStyle={styles.chips}
+      >
         {categories.map((item) => (
           <Chip
             key={item}
@@ -205,7 +210,12 @@ function Header({
         <Text style={styles.sectionTitle}>Expiring Today</Text>
         <Text style={styles.sectionHint}>Calm urgency, real savings</Text>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.horizontalList}
+        contentContainerStyle={styles.carousel}
+      >
         {expiringToday.map((product) => (
           <View key={product.id} style={styles.carouselCard}>
             <ProductCard product={product} onPress={() => openProduct(product.id)} />
@@ -304,7 +314,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full
   },
   chips: {
-    gap: spacing.sm
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg
+  },
+  horizontalList: {
+    marginHorizontal: -spacing.lg
   },
   sectionTitleRow: {
     flexDirection: "row",
@@ -322,6 +336,7 @@ const styles = StyleSheet.create({
   },
   carousel: {
     gap: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xs
   },
   carouselCard: {
