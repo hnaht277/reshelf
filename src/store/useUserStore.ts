@@ -58,14 +58,14 @@ export const useUserStore = create<UserStore>((set) => ({
   mockPassword: "reshelf123",
   resetCode: undefined,
   user: {
-    firstName: "Maya",
-    fullName: "Maya Nguyen",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=180",
+    firstName: "Anh",
+    fullName: "Nguyễn Minh Anh",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=180",
     memberSince: "March 2026",
-    birthDate: "1997-08-16",
+    birthDate: "1998-09-02",
     gender: "Female",
-    phone: "+1 415 555 0198",
-    email: "maya.nguyen@example.com"
+    phone: "+84 912 345 678",
+    email: "minhanh.nguyen@example.com"
   },
   impact: {
     mealsRescued: 12,
