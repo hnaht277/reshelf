@@ -72,6 +72,9 @@ export type Order = {
 };
 
 export type RootStackParamList = {
+  Login: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { email?: string; code?: string } | undefined;
   MainTabs: NavigatorScreenParams<TabParamList> | undefined;
   ProductDetail: { productId: string };
   Checkout: undefined;
