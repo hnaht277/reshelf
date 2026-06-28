@@ -4,6 +4,27 @@ Reshelf is a high-fidelity Expo prototype for a circular-economy marketplace. It
 
 > **Prototype status:** the catalog, account, orders, notifications, password reset, and checkout are mocked in the client. There is no backend, payment processor, email service, or push-notification service. Changes are held in memory and reset after a full app reload.
 
+## Problem statement
+
+How might we build an inclusive circular ecosystem in Ho Chi Minh City that transforms surplus goods into economic opportunities for vulnerable families while protecting the environment?
+
+## Solution overview
+
+GreenCart is a circular ecosystem marketplace connecting businesses with consumers to redistribute surplus and near-expiry FMCG products through existing delivery ecosystems.
+
+## Features
+
+- **Product discovery:** searchable Home and Explore experiences, category filters, grid/list layout preference, expiring-today carousel, pull-to-refresh, and infinite-scroll-style pagination.
+- **Personalized recommendations:** local "AI picks" based on seeded order history, category affinity, seller affinity, discount, distance, and recency.
+- **Product details:** product hero image, freshness badge, discount and savings display, seller verification, stock-aware quantity selector, save item, add to cart, buy now, impact preview, and "Why it is on Reshelf" explanation.
+- **Cart and checkout:** cart item quantity management, remove and clear actions, savings/CO2 summary, mock delivery address selection, promo codes, checkout success, and session impact updates.
+- **Saved items:** save products from detail pages, browse saved rescues, remove saved items, and add saved products back to cart.
+- **Notifications:** grouped notifications, unread count badge, mark read, mark all read, swipe-to-delete, and undo toast.
+- **Profile and impact:** editable profile information, impact dashboard, eco badges, order history, saved items, settings, help, and about pages.
+- **Order management:** seeded order history, active/completed filters, order detail timeline, pickup code, seller pickup information, payment summary, and order-again flow.
+- **Authentication prototype:** sign in, forgot password, reset password, change password, and sign out with in-memory mock account state.
+- **Settings:** product layout preference, notification preferences, password change, and sign out.
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 20.19 or newer (the minimum for Expo SDK 54)
