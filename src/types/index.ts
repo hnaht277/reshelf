@@ -2,10 +2,6 @@ import type { NavigatorScreenParams } from "@react-navigation/native";
 
 export type Category =
   | "All"
-  | "Food"
-  | "Beverages"
-  | "Dairy"
-  | "Bakery"
   | "Personal Care"
   | "Household";
 
