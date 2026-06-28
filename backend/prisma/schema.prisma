@@ -1,0 +1,416 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  NON_BINARY
+  PREFER_NOT_TO_SAY
+}
+
+enum ProductLayout {
+  GRID
+  LIST
+}
+
+enum SellerStatus {
+  ACTIVE
+  PAUSED
+  SUSPENDED
+}
+
+enum ProductStatus {
+  ACTIVE
+  SOLD_OUT
+  EXPIRED
+  HIDDEN
+}
+
+enum CartStatus {
+  ACTIVE
+  CHECKED_OUT
+  ABANDONED
+}
+
+enum OrderStatus {
+  PENDING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum NotificationType {
+  NEW_LISTING
+  PRICE_DROP
+  EXPIRY_ALERT
+  ORDER_UPDATE
+  IMPACT
+}
+
+enum BadgeThresholdType {
+  MEALS_RESCUED
+  CO2_SAVED_KG
+  MONEY_SAVED
+  STREAK_DAYS
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?   @unique
+  passwordHash    String
+  fullName        String
+  birthDate       DateTime?
+  gender          Gender?
+  avatarUrl       String?
+  avatarPublicId  String?
+  role            Role      @default(BUYER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  preference      UserPreference?
+  impact          UserImpact?
+  sellerProfile   Seller?
+  carts           Cart[]
+  orders          Order[]
+  savedProducts   SavedProduct[]
+  notifications   Notification[]
+  badges          UserBadge[]
+  searches        SearchHistory[]
+  supportTickets  SupportTicket[]
+
+  @@map("users")
+}
+
+model UserPreference {
+  id                  String        @id @default(cuid())
+  userId              String        @unique
+  layout              ProductLayout @default(GRID)
+  priceDropAlerts     Boolean       @default(true)
+  expiryReminders     Boolean       @default(true)
+  impactUpdates       Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model UserImpact {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  mealsRescued    Int       @default(0)
+  co2SavedKg      Decimal   @default(0) @db.Decimal(10, 2)
+  moneySaved      Int       @default(0)
+  streakDays      Int       @default(0)
+  lastRescueAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_impacts")
+}
+
+model Seller {
+  id              String       @id @default(cuid())
+  ownerId         String?      @unique
+  name            String
+  avatarUrl       String?
+  avatarPublicId  String?
+  rating          Decimal      @default(0) @db.Decimal(3, 2)
+  verified        Boolean      @default(false)
+  address         String
+  lat             Decimal?     @db.Decimal(9, 6)
+  lng             Decimal?     @db.Decimal(9, 6)
+  status          SellerStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  owner           User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  products        Product[]
+  orders          Order[]
+
+  @@index([status])
+  @@index([lat, lng])
+  @@map("sellers")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+model Product {
+  id             String        @id @default(cuid())
+  sellerId       String
+  categoryId     String
+  name           String
+  description    String
+  reason         String?
+  price          Int
+  originalPrice  Int
+  expiryDate     DateTime
+  imageUrl       String
+  imagePublicId  String?
+  stock          Int
+  co2SavingsKg   Decimal       @default(0) @db.Decimal(10, 2)
+  status         ProductStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  seller         Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  category       Category      @relation(fields: [categoryId], references: [id])
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  savedBy        SavedProduct[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status, expiryDate])
+  @@index([createdAt])
+  @@map("products")
+}
+
+model Cart {
+  id          String      @id @default(cuid())
+  userId      String
+  status      CartStatus  @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CartItem[]
+
+  @@index([userId, status])
+  @@map("carts")
+}
+
+model CartItem {
+  id                 String    @id @default(cuid())
+  cartId             String
+  productId          String
+  quantity           Int
+  unitPriceSnapshot  Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  cart               Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product            Product   @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id                 String       @id @default(cuid())
+  displayCode        String       @unique
+  userId             String
+  sellerId           String
+  status             OrderStatus  @default(PENDING)
+  placedAt           DateTime     @default(now())
+  subtotal           Int
+  originalSubtotal   Int
+  deliveryFee        Int          @default(0)
+  ecoDiscount        Int          @default(0)
+  total              Int
+  co2SavedKg         Decimal      @default(0) @db.Decimal(10, 2)
+  pickupCode         String
+  pickupAddress      String
+  pickupWindowStart  DateTime?
+  pickupWindowEnd    DateTime?
+  pickupNote         String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  user               User         @relation(fields: [userId], references: [id])
+  seller             Seller       @relation(fields: [sellerId], references: [id])
+  items              OrderItem[]
+  timeline           OrderTimelineEvent[]
+  supportTickets     SupportTicket[]
+
+  @@index([userId, placedAt])
+  @@index([sellerId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                       String    @id @default(cuid())
+  orderId                  String
+  productId                String?
+  quantity                 Int
+  unitPrice                Int
+  originalUnitPrice        Int
+  productNameSnapshot      String
+  productImageUrlSnapshot  String?
+  createdAt                DateTime  @default(now())
+
+  order                    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product                  Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model OrderTimelineEvent {
+  id          String       @id @default(cuid())
+  orderId     String
+  status      OrderStatus
+  title       String
+  body        String?
+  occurredAt  DateTime     @default(now())
+  sortOrder   Int          @default(0)
+
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, sortOrder])
+  @@map("order_timeline_events")
+}
+
+model SavedProduct {
+  id          String    @id @default(cuid())
+  userId      String
+  productId   String
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId])
+  @@map("saved_products")
+}
+
+model Notification {
+  id          String            @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  body        String
+  metadata    Json?
+  readAt      DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime          @default(now())
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@index([userId, deletedAt])
+  @@map("notifications")
+}
+
+model Badge {
+  id              String              @id @default(cuid())
+  code            String              @unique
+  label           String
+  description     String?
+  icon            String?
+  thresholdType   BadgeThresholdType
+  thresholdValue  Int
+  sortOrder       Int                 @default(0)
+  active          Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  users           UserBadge[]
+
+  @@index([active, sortOrder])
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String    @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime  @default(now())
+  seenAt    DateTime?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([badgeId])
+  @@map("user_badges")
+}
+
+model SearchHistory {
+  id               String    @id @default(cuid())
+  userId           String
+  query            String
+  normalizedQuery  String
+  searchCount      Int       @default(1)
+  searchedAt       DateTime  @default(now())
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, normalizedQuery])
+  @@index([userId, searchedAt])
+  @@map("search_histories")
+}
+
+model Faq {
+  id          String    @id @default(cuid())
+  question    String
+  answer      String
+  category    String?
+  sortOrder   Int       @default(0)
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+  @@map("faqs")
+}
+
+model SupportTicket {
+  id          String               @id @default(cuid())
+  userId      String
+  orderId     String?
+  subject     String
+  message     String
+  status      SupportTicketStatus  @default(OPEN)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Order?               @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+  @@index([status])
+  @@map("support_tickets")
+}
