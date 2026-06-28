@@ -14,6 +14,9 @@ export type Seller = {
   rating: number;
   distanceKm: number;
   verified: boolean;
+  address?: string;
+  phone?: string;
+  googleMapsUrl?: string;
 };
 
 export type Product = {

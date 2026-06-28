@@ -35,19 +35,25 @@ const sellers = {
   },
   coMay: {
     id: "seller-co-may",
-    name: "Mỹ Phẩm Cỏ Mây",
+    name: "Hasaki Beauty & Clinic Nguyễn Trãi",
     avatarUrl: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120",
     rating: 4.6,
     distanceKm: 1.8,
-    verified: true
+    verified: true,
+    address: "141A-143 Nguyễn Trãi, Phường 2, Quận 5, TP. Hồ Chí Minh",
+    phone: "1800 6324",
+    googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Hasaki%20Beauty%20%26%20Clinic%20141A-143%20Nguy%E1%BB%85n%20Tr%C3%A3i%20Qu%E1%BA%ADn%205%20H%E1%BB%93%20Ch%C3%AD%20Minh"
   },
   nhaSach: {
     id: "seller-nha-sach",
-    name: "Nhà Sạch Sài Gòn",
+    name: "Guardian Nguyễn Sơn",
     avatarUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=120",
     rating: 4.5,
     distanceKm: 2.1,
-    verified: false
+    verified: true,
+    address: "301A Nguyễn Sơn, Phường Phú Thạnh, TP. Hồ Chí Minh",
+    phone: "1900 4449",
+    googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Guardian%20Nguy%E1%BB%85n%20S%C6%A1n%2C%20301A%20Nguy%E1%BB%85n%20S%C6%A1n%2C%20Ph%C6%B0%E1%BB%9Dng%20Ph%C3%BA%20Th%E1%BA%A1nh%2C%20TP.%20H%E1%BB%93%20Ch%C3%AD%20Minh"
   }
 };
 

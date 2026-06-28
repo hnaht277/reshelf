@@ -19,10 +19,10 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductSkeletonGrid } from "@/components/Skeleton";
 import { SearchBar } from "@/components/SearchBar";
 import { categories, colors, radius, shadows, spacing, type } from "@/constants/theme";
-import { orders } from "@/data/orders";
 import { products as allProducts } from "@/data/products";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProductStore } from "@/store/useProductStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { useUserStore } from "@/store/useUserStore";
 import type { Product, RootStackParamList } from "@/types";
 import { daysUntil } from "@/utils/format";
@@ -37,6 +37,7 @@ export function HomeScreen() {
   const debouncedSearch = useDebounce(searchInput, 300);
   const user = useUserStore((state) => state.user);
   const impact = useUserStore((state) => state.impact);
+  const orders = useOrderStore((state) => state.orders);
   const layout = useUserStore((state) => state.preferences.layout);
   const setLayout = useUserStore((state) => state.setLayout);
   const {
@@ -64,7 +65,7 @@ export function HomeScreen() {
   );
   const suggestions = useMemo(
     () => getProductSuggestions(allProducts, orders),
-    []
+    [orders]
   );
 
   const numColumns = layout === "grid" && width >= 720 ? 3 : layout === "grid" ? 2 : 1;

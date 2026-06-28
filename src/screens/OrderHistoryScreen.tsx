@@ -5,8 +5,8 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
-import { orders } from "@/data/orders";
 import { useCartStore } from "@/store/useCartStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { useToastStore } from "@/store/useToastStore";
 import type { Order, OrderStatus, RootStackParamList } from "@/types";
 import { formatCurrency } from "@/utils/format";
@@ -16,6 +16,7 @@ type Filter = "All" | "Active" | "Completed";
 
 export function OrderHistoryScreen({ navigation }: Props) {
   const [filter, setFilter] = useState<Filter>("All");
+  const orders = useOrderStore((state) => state.orders);
   const add = useCartStore((state) => state.add);
   const showToast = useToastStore((state) => state.show);
   const visibleOrders = useMemo(
@@ -25,7 +26,7 @@ export function OrderHistoryScreen({ navigation }: Props) {
         if (filter === "Completed") return order.status !== "ready";
         return true;
       }),
-    [filter]
+    [filter, orders]
   );
 
   const reorder = (order: Order) => {
