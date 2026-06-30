@@ -2,10 +2,6 @@ import type { NavigatorScreenParams } from "@react-navigation/native";
 
 export type Category =
   | "All"
-  | "Food"
-  | "Beverages"
-  | "Dairy"
-  | "Bakery"
   | "Personal Care"
   | "Household";
 
@@ -18,6 +14,9 @@ export type Seller = {
   rating: number;
   distanceKm: number;
   verified: boolean;
+  address?: string;
+  phone?: string;
+  googleMapsUrl?: string;
 };
 
 export type Product = {
@@ -76,6 +75,9 @@ export type Order = {
 };
 
 export type RootStackParamList = {
+  Login: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { email?: string; code?: string } | undefined;
   MainTabs: NavigatorScreenParams<TabParamList> | undefined;
   ProductDetail: { productId: string };
   Checkout: undefined;

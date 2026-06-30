@@ -19,10 +19,10 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductSkeletonGrid } from "@/components/Skeleton";
 import { SearchBar } from "@/components/SearchBar";
 import { categories, colors, radius, shadows, spacing, type } from "@/constants/theme";
-import { orders } from "@/data/orders";
 import { products as allProducts } from "@/data/products";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProductStore } from "@/store/useProductStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { useUserStore } from "@/store/useUserStore";
 import type { Product, RootStackParamList } from "@/types";
 import { daysUntil } from "@/utils/format";
@@ -37,6 +37,7 @@ export function HomeScreen() {
   const debouncedSearch = useDebounce(searchInput, 300);
   const user = useUserStore((state) => state.user);
   const impact = useUserStore((state) => state.impact);
+  const orders = useOrderStore((state) => state.orders);
   const layout = useUserStore((state) => state.preferences.layout);
   const setLayout = useUserStore((state) => state.setLayout);
   const {
@@ -64,7 +65,7 @@ export function HomeScreen() {
   );
   const suggestions = useMemo(
     () => getProductSuggestions(allProducts, orders),
-    []
+    [orders]
   );
 
   const numColumns = layout === "grid" && width >= 720 ? 3 : layout === "grid" ? 2 : 1;
@@ -168,6 +169,9 @@ function Header({
   setLayout,
   openProduct
 }: HeaderProps) {
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const SuggestionsChevron = showSuggestions ? ChevronUp : ChevronDown;
+
   return (
     <View style={styles.header}>
       <View style={styles.greetingCard}>
@@ -217,7 +221,13 @@ function Header({
 
       {suggestions.length > 0 ? (
         <View style={styles.suggestionSection}>
-          <View style={styles.sectionTitleRow}>
+          <Pressable
+            accessibilityLabel={`${showSuggestions ? "Hide" : "Show"} AI picks for you`}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showSuggestions }}
+            onPress={() => setShowSuggestions((current) => !current)}
+            style={({ pressed }) => [styles.sectionTitleRow, pressed && styles.aiHeaderPressed]}
+          >
             <View style={styles.aiTitleGroup}>
               <View style={styles.aiIcon}>
                 <Sparkles color={colors.impact} size={18} strokeWidth={1.75} />
@@ -227,25 +237,30 @@ function Header({
                 <Text style={styles.aiSubtitle}>Tailored to your order history</Text>
               </View>
             </View>
-            <View style={styles.aiBadge}>
-              <Text style={styles.aiBadgeText}>PERSONALIZED</Text>
+            <View style={styles.aiHeaderActions}>
+              <View style={styles.aiBadge}>
+                <Text style={styles.aiBadgeText}>PERSONALIZED</Text>
+              </View>
+              <SuggestionsChevron color={colors.neutral[500]} size={20} strokeWidth={1.75} />
             </View>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.horizontalList}
-            contentContainerStyle={[styles.carousel, styles.suggestionCarousel]}
-          >
-            {suggestions.map(({ product, reason }) => (
-              <PersonalizedSuggestionCard
-                key={product.id}
-                product={product}
-                reason={reason}
-                onPress={() => openProduct(product.id)}
-              />
-            ))}
-          </ScrollView>
+          </Pressable>
+          {showSuggestions ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalList}
+              contentContainerStyle={[styles.carousel, styles.suggestionCarousel]}
+            >
+              {suggestions.map(({ product, reason }) => (
+                <PersonalizedSuggestionCard
+                  key={product.id}
+                  product={product}
+                  reason={reason}
+                  onPress={() => openProduct(product.id)}
+                />
+              ))}
+            </ScrollView>
+          ) : null}
         </View>
       ) : null}
 
@@ -432,6 +447,14 @@ const styles = StyleSheet.create({
   aiSubtitle: {
     ...type.bodySm,
     color: colors.neutral[500]
+  },
+  aiHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm
+  },
+  aiHeaderPressed: {
+    opacity: 0.72
   },
   aiBadge: {
     paddingHorizontal: spacing.sm,

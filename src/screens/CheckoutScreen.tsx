@@ -2,14 +2,13 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   ArrowLeft,
   Check,
-  ChevronRight,
-  Home,
   Leaf,
   MapPin,
-  Plus,
+  Phone,
+  Store,
   Tag
 } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -27,6 +26,7 @@ import { Button } from "@/components/ui/Button";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
 import { checkout } from "@/services/api";
 import { useCartStore } from "@/store/useCartStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { useToastStore } from "@/store/useToastStore";
 import { useUserStore } from "@/store/useUserStore";
 import type { CheckoutResult, RootStackParamList } from "@/types";
@@ -35,23 +35,8 @@ import { formatCurrency } from "@/utils/format";
 type Props = NativeStackScreenProps<RootStackParamList, "Checkout">;
 type Coupon = "RESCUE20" | "GREEN10";
 
-const DELIVERY_FEE = 20_000;
+const SERVICE_FEE = 15_000;
 const ECO_DISCOUNT = 5_000;
-
-const addresses = [
-  {
-    id: "home",
-    label: "Home",
-    recipient: "Maya Nguyen  ·  +1 415 555 0198",
-    address: "82 Nguyen Van Cu Street, Ward 2, District 5, Ho Chi Minh City"
-  },
-  {
-    id: "work",
-    label: "Work",
-    recipient: "Maya Nguyen  ·  +1 415 555 0198",
-    address: "11 Doan Van Bo Street, Ward 13, District 4, Ho Chi Minh City"
-  }
-] as const;
 
 export function CheckoutScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -60,9 +45,9 @@ export function CheckoutScreen({ navigation }: Props) {
   const savings = useCartStore((state) => state.savings());
   const itemCount = useCartStore((state) => state.itemCount());
   const clear = useCartStore((state) => state.clear);
+  const addOrder = useOrderStore((state) => state.addOrder);
   const recordCheckout = useUserStore((state) => state.recordCheckout);
   const showToast = useToastStore((state) => state.show);
-  const [addressId, setAddressId] = useState<(typeof addresses)[number]["id"]>("home");
   const [couponInput, setCouponInput] = useState("");
   const [coupon, setCoupon] = useState<Coupon | undefined>();
   const [couponError, setCouponError] = useState("");
@@ -70,7 +55,11 @@ export function CheckoutScreen({ navigation }: Props) {
   const [success, setSuccess] = useState<CheckoutResult>();
 
   const couponDiscount = coupon === "RESCUE20" ? Math.min(20_000, subtotal * 0.2) : coupon === "GREEN10" ? 10_000 : 0;
-  const total = Math.max(0, subtotal + DELIVERY_FEE - ECO_DISCOUNT - couponDiscount);
+  const total = Math.max(0, subtotal + SERVICE_FEE - ECO_DISCOUNT - couponDiscount);
+  const pickupSellers = useMemo(
+    () => items.map((item) => item.product.seller).filter((seller, index, sellers) => sellers.findIndex((candidate) => candidate.id === seller.id) === index),
+    [items]
+  );
 
   const applyCoupon = () => {
     const normalized = couponInput.trim().toUpperCase();
@@ -88,7 +77,16 @@ export function CheckoutScreen({ navigation }: Props) {
     if (items.length === 0) return;
     setPlacingOrder(true);
     try {
+      const orderedItems = items.map((item) => ({ ...item }));
       const result = await checkout(items);
+      addOrder({
+        id: result.orderId,
+        placedAt: new Date().toISOString(),
+        status: "ready",
+        items: orderedItems,
+        total,
+        co2Saved: result.co2Saved
+      });
       recordCheckout(result.itemsRescued, result.co2Saved, savings + couponDiscount + ECO_DISCOUNT);
       clear();
       setSuccess({ ...result, total });
@@ -96,6 +94,11 @@ export function CheckoutScreen({ navigation }: Props) {
     } finally {
       setPlacingOrder(false);
     }
+  };
+
+  const viewOrderHistory = () => {
+    setSuccess(undefined);
+    navigation.replace("OrderHistory");
   };
 
   const continueShopping = () => {
@@ -133,38 +136,30 @@ export function CheckoutScreen({ navigation }: Props) {
         </View>
 
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
-          <SectionHeader title="Delivery address" action="Choose" />
+          <SectionHeader title={pickupSellers.length === 1 ? "Pickup location" : "Pickup locations"} />
           <View style={styles.card}>
-            {addresses.map((address, index) => {
-              const selected = address.id === addressId;
-              return (
-                <Pressable
-                  key={address.id}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: selected }}
-                  onPress={() => setAddressId(address.id)}
-                  style={[styles.addressRow, index > 0 && styles.rowDivider]}
-                >
-                  <View style={[styles.addressIcon, selected && styles.addressIconSelected]}>
-                    {address.id === "home" ? <Home color={selected ? colors.primary[700] : colors.neutral[500]} size={20} /> : <MapPin color={selected ? colors.primary[700] : colors.neutral[500]} size={20} />}
-                  </View>
-                  <View style={styles.addressBody}>
-                    <View style={styles.addressTitleRow}>
-                      <Text style={styles.addressTitle}>{address.label}</Text>
-                      {selected ? <View style={styles.defaultPill}><Text style={styles.defaultText}>Selected</Text></View> : null}
+            {pickupSellers.map((seller, index) => (
+              <View key={seller.id} style={[styles.pickupRow, index > 0 && styles.rowDivider]}>
+                <View style={styles.pickupIcon}>
+                  <Store color={colors.primary[700]} size={20} strokeWidth={1.7} />
+                </View>
+                <View style={styles.pickupBody}>
+                  <Text style={styles.pickupName}>{seller.name}</Text>
+                  {seller.address ? (
+                    <View style={styles.pickupDetail}>
+                      <MapPin color={colors.neutral[400]} size={14} strokeWidth={1.5} />
+                      <Text style={styles.pickupDetailText}>{seller.address}</Text>
                     </View>
-                    <Text style={styles.recipient}>{address.recipient}</Text>
-                    <Text style={styles.addressText}>{address.address}</Text>
-                  </View>
-                  <View style={[styles.radio, selected && styles.radioSelected]}>{selected ? <View style={styles.radioDot} /> : null}</View>
-                </Pressable>
-              );
-            })}
-            <Pressable accessibilityRole="button" style={[styles.addAddress, styles.rowDivider]}>
-              <Plus color={colors.primary[700]} size={18} />
-              <Text style={styles.addAddressText}>Add a new address</Text>
-              <ChevronRight color={colors.neutral[400]} size={18} />
-            </Pressable>
+                  ) : null}
+                  {seller.phone ? (
+                    <View style={styles.pickupDetail}>
+                      <Phone color={colors.neutral[400]} size={14} strokeWidth={1.5} />
+                      <Text style={styles.pickupDetailText}>{seller.phone}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+            ))}
           </View>
 
           <SectionHeader title={`Your products (${itemCount})`} action="Edit cart" onAction={navigation.goBack} />
@@ -213,7 +208,7 @@ export function CheckoutScreen({ navigation }: Props) {
           <SectionHeader title="Payment summary" />
           <View style={styles.summaryCard}>
             <SummaryRow label="Item subtotal" value={formatCurrency(subtotal)} />
-            <SummaryRow label="Delivery fee" value={formatCurrency(DELIVERY_FEE)} />
+            <SummaryRow label="Service fee" value={formatCurrency(SERVICE_FEE)} />
             <SummaryRow label="Eco discount" value={`−${formatCurrency(ECO_DISCOUNT)}`} accent />
             {couponDiscount > 0 ? <SummaryRow label={`Coupon (${coupon})`} value={`−${formatCurrency(couponDiscount)}`} accent /> : null}
             <View style={styles.summaryDivider} />
@@ -239,12 +234,15 @@ export function CheckoutScreen({ navigation }: Props) {
           <View style={styles.successModal}>
             <View style={styles.successIcon}><Check color={colors.neutral[0]} size={36} strokeWidth={2.5} /></View>
             <Text style={styles.successTitle}>Order placed!</Text>
-            <Text style={styles.successBody}>Your rescue order {success?.orderId} is confirmed. We’ll notify you when it is on the way.</Text>
+            <Text style={styles.successBody}>Your rescue order {success?.orderId} is confirmed and saved. Check Order History for pickup details.</Text>
             <View style={styles.successTotalRow}>
               <Text style={styles.successTotalLabel}>Paid</Text>
               <Text style={styles.successTotal}>{formatCurrency(success?.total ?? 0)}</Text>
             </View>
-            <Button label="Continue shopping" onPress={continueShopping} style={styles.successButton} />
+            <Button label="View order history" onPress={viewOrderHistory} style={styles.successButton} />
+            <Pressable accessibilityRole="button" onPress={continueShopping}>
+              <Text style={styles.continueText}>Continue shopping</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -273,21 +271,12 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.neutral[0], borderRadius: radius.lg, paddingHorizontal: spacing.base, ...shadows.sm },
   cardPadding: { backgroundColor: colors.neutral[0], borderRadius: radius.lg, padding: spacing.base, gap: spacing.md, ...shadows.sm },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.neutral[100] },
-  addressRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md, paddingVertical: spacing.base },
-  addressIcon: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.neutral[100], alignItems: "center", justifyContent: "center" },
-  addressIconSelected: { backgroundColor: colors.primary[50] },
-  addressBody: { flex: 1, gap: 3 },
-  addressTitleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  addressTitle: { ...type.bodyLg, color: colors.neutral[900], fontFamily: "Inter_700Bold" },
-  defaultPill: { backgroundColor: colors.primary[50], paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full },
-  defaultText: { ...type.badge, color: colors.primary[700] },
-  recipient: { ...type.bodySm, color: colors.neutral[600] },
-  addressText: { ...type.bodyMd, color: colors.neutral[500] },
-  radio: { width: 20, height: 20, marginTop: 2, borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.neutral[300], alignItems: "center", justifyContent: "center" },
-  radioSelected: { borderColor: colors.primary[600] },
-  radioDot: { width: 10, height: 10, borderRadius: radius.full, backgroundColor: colors.primary[600] },
-  addAddress: { height: 52, flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  addAddressText: { flex: 1, ...type.bodyMd, color: colors.primary[700], fontFamily: "Inter_600SemiBold" },
+  pickupRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md, paddingVertical: spacing.base },
+  pickupIcon: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.primary[50], alignItems: "center", justifyContent: "center" },
+  pickupBody: { flex: 1 },
+  pickupName: { ...type.bodyLg, color: colors.neutral[900], fontFamily: "Inter_700Bold" },
+  pickupDetail: { flexDirection: "row", alignItems: "flex-start", gap: spacing.xs, marginTop: spacing.xs },
+  pickupDetailText: { flex: 1, ...type.bodySm, color: colors.neutral[500] },
   productRow: { minHeight: 92, paddingVertical: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md },
   productImage: { width: 64, height: 64, borderRadius: radius.md, backgroundColor: colors.neutral[100] },
   productBody: { flex: 1, gap: 2 },
@@ -331,5 +320,6 @@ const styles = StyleSheet.create({
   successTotalRow: { alignSelf: "stretch", padding: spacing.base, borderRadius: radius.md, backgroundColor: colors.neutral[50], flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   successTotalLabel: { ...type.bodyMd, color: colors.neutral[600] },
   successTotal: { ...type.headingSm, color: colors.neutral[900] },
-  successButton: { alignSelf: "stretch" }
+  successButton: { alignSelf: "stretch" },
+  continueText: { ...type.bodyMd, color: colors.primary[700], fontFamily: "Inter_600SemiBold" }
 });

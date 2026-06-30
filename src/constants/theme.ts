@@ -106,10 +106,6 @@ export const shadows = {
 
 export const categories = [
   "All",
-  "Food",
-  "Beverages",
-  "Dairy",
-  "Bakery",
   "Personal Care",
   "Household"
 ] as const;

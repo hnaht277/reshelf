@@ -17,8 +17,12 @@ import { SettingsScreen } from "@/screens/SettingsScreen";
 import { HelpScreen } from "@/screens/HelpScreen";
 import { AboutScreen } from "@/screens/AboutScreen";
 import { CheckoutScreen } from "@/screens/CheckoutScreen";
+import { ForgotPasswordScreen } from "@/screens/ForgotPasswordScreen";
+import { LoginScreen } from "@/screens/LoginScreen";
+import { ResetPasswordScreen } from "@/screens/ResetPasswordScreen";
 import { useCartStore } from "@/store/useCartStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import { useUserStore } from "@/store/useUserStore";
 import type { RootStackParamList, TabParamList } from "@/types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -32,18 +36,30 @@ const navigationTheme = {
 };
 
 export function AppNavigator() {
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="MainTabs" component={Tabs} />
-        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-        <Stack.Screen name="Checkout" component={CheckoutScreen} />
-        <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
-        <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
-        <Stack.Screen name="SavedItems" component={SavedItemsScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Help" component={HelpScreen} />
-        <Stack.Screen name="About" component={AboutScreen} />
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="MainTabs" component={Tabs} />
+            <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+            <Stack.Screen name="Checkout" component={CheckoutScreen} />
+            <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+            <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
+            <Stack.Screen name="SavedItems" component={SavedItemsScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Help" component={HelpScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

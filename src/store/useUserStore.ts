@@ -27,10 +27,23 @@ type Preferences = {
   impactUpdates: boolean;
 };
 
+type AuthResult = {
+  ok: boolean;
+  message: string;
+};
+
 type UserStore = {
+  isAuthenticated: boolean;
+  mockPassword: string;
+  resetCode?: string;
   user: User;
   impact: Impact;
   preferences: Preferences;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  logout: () => void;
+  requestPasswordReset: (email: string) => Promise<AuthResult & { code?: string }>;
+  resetPassword: (email: string, code: string, password: string) => Promise<AuthResult>;
+  changePassword: (currentPassword: string, nextPassword: string) => Promise<AuthResult>;
   updateUser: (profile: Omit<User, "firstName" | "memberSince">) => void;
   setLayout: (layout: Preferences["layout"]) => void;
   setPreference: (
@@ -41,15 +54,18 @@ type UserStore = {
 };
 
 export const useUserStore = create<UserStore>((set) => ({
+  isAuthenticated: false,
+  mockPassword: "reshelf123",
+  resetCode: undefined,
   user: {
-    firstName: "Maya",
-    fullName: "Maya Nguyen",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=180",
+    firstName: "Anh",
+    fullName: "Nguyễn Minh Anh",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=180",
     memberSince: "March 2026",
-    birthDate: "1997-08-16",
+    birthDate: "1998-09-02",
     gender: "Female",
-    phone: "+1 415 555 0198",
-    email: "maya.nguyen@example.com"
+    phone: "+84 912 345 678",
+    email: "minhanh.nguyen@example.com"
   },
   impact: {
     mealsRescued: 12,
@@ -63,6 +79,79 @@ export const useUserStore = create<UserStore>((set) => ({
     expiryReminders: true,
     impactUpdates: false
   },
+  login: async (email, password) =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        set((state) => {
+          const emailMatches = email.trim().toLowerCase() === state.user.email.toLowerCase();
+          const passwordMatches = password === state.mockPassword;
+
+          if (!emailMatches || !passwordMatches) {
+            resolve({ ok: false, message: "Email or password is incorrect." });
+            return state;
+          }
+
+          resolve({ ok: true, message: "Welcome back to Reshelf." });
+          return { isAuthenticated: true };
+        });
+      }, 450);
+    }),
+  logout: () => set({ isAuthenticated: false }),
+  requestPasswordReset: async (email) =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        set((state) => {
+          const emailMatches = email.trim().toLowerCase() === state.user.email.toLowerCase();
+          if (!emailMatches) {
+            resolve({ ok: false, message: "We could not find an account with that email." });
+            return state;
+          }
+
+          const code = "246810";
+          resolve({ ok: true, message: "Reset code sent.", code });
+          return { resetCode: code };
+        });
+      }, 450);
+    }),
+  resetPassword: async (email, code, password) =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        set((state) => {
+          const emailMatches = email.trim().toLowerCase() === state.user.email.toLowerCase();
+          if (!emailMatches || code.trim() !== state.resetCode) {
+            resolve({ ok: false, message: "Reset code is invalid." });
+            return state;
+          }
+
+          if (password.length < 8) {
+            resolve({ ok: false, message: "Password must be at least 8 characters." });
+            return state;
+          }
+
+          resolve({ ok: true, message: "Password reset successfully." });
+          return { mockPassword: password, resetCode: undefined, isAuthenticated: true };
+        });
+      }, 450);
+    }),
+  changePassword: async (currentPassword, nextPassword) =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        set((state) => {
+          if (currentPassword !== state.mockPassword) {
+            resolve({ ok: false, message: "Current password is incorrect." });
+            return state;
+          }
+
+          if (nextPassword.length < 8) {
+            resolve({ ok: false, message: "New password must be at least 8 characters." });
+            return state;
+          }
+
+          resolve({ ok: true, message: "Password changed successfully." });
+          return { mockPassword: nextPassword };
+        });
+      }, 450);
+    }),
   updateUser: (profile) =>
     set((state) => ({
       user: {

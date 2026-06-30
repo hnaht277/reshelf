@@ -2,20 +2,23 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Leaf, ShoppingBag } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CartItemRow } from "@/components/CartItemRow";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
 import { useCartStore } from "@/store/useCartStore";
-import type { RootStackParamList } from "@/types";
+import type { CartItem, RootStackParamList } from "@/types";
 import { formatCurrency } from "@/utils/format";
 
 const DELIVERY_FEE = 20000;
 const ECO_DISCOUNT = 5000;
 
 export function CartScreen() {
+  const [pendingRemoval, setPendingRemoval] = useState<CartItem | null>(null);
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const items = useCartStore((state) => state.items);
   const updateQty = useCartStore((state) => state.updateQty);
@@ -27,6 +30,19 @@ export function CartScreen() {
   const co2Saved = useCartStore((state) => state.co2Saved());
 
   const total = Math.max(0, subtotal + DELIVERY_FEE - ECO_DISCOUNT);
+
+  const changeQuantity = (item: CartItem, quantity: number) => {
+    if (quantity === 0) {
+      setPendingRemoval(item);
+      return;
+    }
+    updateQty(item.product.id, quantity);
+  };
+
+  const confirmRemoval = () => {
+    if (pendingRemoval) remove(pendingRemoval.product.id);
+    setPendingRemoval(null);
+  };
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -56,7 +72,14 @@ export function CartScreen() {
                 <CartItemRow
                   key={item.product.id}
                   item={item}
-                  onQuantityChange={(quantity) => updateQty(item.product.id, quantity)}
+                  isOpen={openItemId === item.product.id}
+                  onOpen={() => setOpenItemId(item.product.id)}
+                  onClose={() =>
+                    setOpenItemId((currentId) =>
+                      currentId === item.product.id ? null : currentId
+                    )
+                  }
+                  onQuantityChange={(quantity) => changeQuantity(item, quantity)}
                   onRemove={() => remove(item.product.id)}
                 />
               ))}
@@ -92,6 +115,36 @@ export function CartScreen() {
         )}
       </ScrollView>
 
+      <Modal
+        visible={Boolean(pendingRemoval)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPendingRemoval(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View accessibilityViewIsModal style={styles.removeModal}>
+            <Text style={styles.modalTitle}>Remove this item?</Text>
+            <Text style={styles.modalBody}>
+              The quantity for {pendingRemoval?.product.name} is now zero. Would you like to remove
+              it from your cart?
+            </Text>
+            <View style={styles.modalActions}>
+              <Button
+                label="Cancel"
+                variant="secondary"
+                onPress={() => setPendingRemoval(null)}
+                style={styles.modalButton}
+              />
+              <Button
+                label="Remove item"
+                variant="danger"
+                onPress={confirmRemoval}
+                style={styles.modalButton}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -198,4 +251,35 @@ const styles = StyleSheet.create({
     ...type.bodySm,
     color: colors.impact
   },
+  modalBackdrop: {
+    flex: 1,
+    padding: spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(23,23,23,0.48)"
+  },
+  removeModal: {
+    width: "100%",
+    padding: spacing.xl,
+    gap: spacing.base,
+    borderRadius: radius["2xl"],
+    backgroundColor: colors.neutral[0],
+    ...shadows.xl
+  },
+  modalTitle: {
+    ...type.headingLg,
+    color: colors.neutral[900]
+  },
+  modalBody: {
+    ...type.bodyMd,
+    color: colors.neutral[600]
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginTop: spacing.xs
+  },
+  modalButton: {
+    flex: 1
+  }
 });

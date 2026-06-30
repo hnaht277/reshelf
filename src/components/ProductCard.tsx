@@ -61,7 +61,6 @@ export function ProductCard({ product, mode = "grid", grow = true, onPress }: Pr
         <View style={styles.discount}>
           <Badge label={`-${product.discount}%`} tone="danger" />
         </View>
-        <View style={styles.dot} />
       </View>
       <View style={styles.gridBody}>
         <Text numberOfLines={2} style={styles.title}>
@@ -123,17 +122,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing.sm,
     top: spacing.sm
-  },
-  dot: {
-    position: "absolute",
-    right: spacing.sm,
-    top: spacing.sm,
-    width: 12,
-    height: 12,
-    borderRadius: radius.full,
-    backgroundColor: colors.primary[400],
-    borderWidth: 2,
-    borderColor: colors.neutral[0]
   },
   gridBody: {
     padding: spacing.md,

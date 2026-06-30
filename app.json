@@ -18,10 +18,16 @@
       "adaptiveIcon": {
         "backgroundColor": "#F0FDF4"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.lvkhang16.reshelf"
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "abb8c7c9-9d3b-4b6e-a43d-b98d8bb43af9"
+      }
     }
   }
 }

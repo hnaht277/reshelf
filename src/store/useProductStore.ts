@@ -22,6 +22,8 @@ async function loadPage(page: number, category: Category, query: string) {
   return getProducts(page, { category, query });
 }
 
+let latestFirstPageRequest = 0;
+
 export const useProductStore = create<ProductStore>((set, get) => ({
   products: [],
   page: 1,
@@ -44,17 +46,25 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     })),
   setCategory: (category) => set({ category }),
   fetchFirstPage: async () => {
+    const requestId = ++latestFirstPageRequest;
     const { category, query } = get();
     set({ loading: true, page: 1 });
     const result = await loadPage(1, category, query);
+    if (requestId !== latestFirstPageRequest) return;
     set({ products: result.items, hasMore: result.hasMore, loading: false, page: 1 });
   },
   fetchNextPage: async () => {
     const { category, query, page, hasMore, loading } = get();
     if (!hasMore || loading) return;
+    const requestId = latestFirstPageRequest;
     const nextPage = page + 1;
     set({ loading: true });
     const result = await loadPage(nextPage, category, query);
+    if (
+      requestId !== latestFirstPageRequest ||
+      category !== get().category ||
+      query !== get().query
+    ) return;
     set((state) => ({
       products: [...state.products, ...result.items],
       hasMore: result.hasMore,
@@ -63,9 +73,11 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }));
   },
   refresh: async () => {
+    const requestId = ++latestFirstPageRequest;
     const { category, query } = get();
     set({ refreshing: true, page: 1 });
     const result = await loadPage(1, category, query);
+    if (requestId !== latestFirstPageRequest) return;
     set({ products: result.items, hasMore: result.hasMore, refreshing: false, page: 1 });
   }
 }));

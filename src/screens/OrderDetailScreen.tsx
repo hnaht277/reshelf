@@ -7,17 +7,18 @@ import {
   Leaf,
   MapPin,
   PackageCheck,
+  Phone,
   ReceiptText,
   RotateCcw,
   Store,
   XCircle
 } from "lucide-react-native";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { colors, radius, shadows, spacing, type } from "@/constants/theme";
-import { orders } from "@/data/orders";
 import { useCartStore } from "@/store/useCartStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { useToastStore } from "@/store/useToastStore";
 import type { Order, OrderStatus, RootStackParamList } from "@/types";
 import { formatCurrency } from "@/utils/format";
@@ -25,6 +26,7 @@ import { formatCurrency } from "@/utils/format";
 type Props = NativeStackScreenProps<RootStackParamList, "OrderDetail">;
 
 export function OrderDetailScreen({ navigation, route }: Props) {
+  const orders = useOrderStore((state) => state.orders);
   const order = orders.find((candidate) => candidate.id === route.params.orderId);
   const add = useCartStore((state) => state.add);
   const showToast = useToastStore((state) => state.show);
@@ -49,7 +51,9 @@ export function OrderDetailScreen({ navigation, route }: Props) {
   const fees = Math.max(0, order.total - itemSubtotal);
   const presentation = statusPresentation[order.status];
   const StatusIcon = presentation.icon;
-  const seller = order.items[0].product.seller;
+  const sellers = order.items
+    .map((item) => item.product.seller)
+    .filter((seller, index, allSellers) => allSellers.findIndex((candidate) => candidate.id === seller.id) === index);
 
   const reorder = () => {
     order.items.forEach((item) => add(item.product, item.quantity));
@@ -136,18 +140,39 @@ export function OrderDetailScreen({ navigation, route }: Props) {
         </Section>
 
         <Section title={order.status === "delivered" ? "Fulfilled by" : "Pickup details"}>
-          <View style={styles.storeRow}>
-            <View style={styles.storeIcon}>
-              <Store color={colors.primary[700]} size={22} strokeWidth={1.5} />
-            </View>
-            <View style={styles.storeBody}>
-              <Text style={styles.storeName}>{seller.name}</Text>
-              <View style={styles.addressRow}>
-                <MapPin color={colors.neutral[400]} size={14} strokeWidth={1.5} />
-                <Text style={styles.address}>128 Nguyễn Trãi, Quận 5 · cách {seller.distanceKm.toFixed(1)} km</Text>
+          {sellers.map((seller, index) => (
+            <View key={seller.id} style={[styles.storeRow, index > 0 && styles.storeBorder]}>
+              <View style={styles.storeIcon}>
+                <Store color={colors.primary[700]} size={22} strokeWidth={1.5} />
+              </View>
+              <View style={styles.storeBody}>
+                <Text style={styles.storeName}>{seller.name}</Text>
+                {seller.address && seller.googleMapsUrl ? (
+                  <Pressable
+                    accessibilityHint="Opens this shop in Google Maps"
+                    accessibilityLabel={`Open ${seller.address} in Google Maps`}
+                    accessibilityRole="link"
+                    onPress={() => void Linking.openURL(seller.googleMapsUrl!)}
+                    style={styles.detailRow}
+                  >
+                    <MapPin color={colors.neutral[400]} size={14} strokeWidth={1.5} />
+                    <Text style={styles.address}>{seller.address} · cách {seller.distanceKm.toFixed(1)} km</Text>
+                  </Pressable>
+                ) : null}
+                {seller.phone ? (
+                  <Pressable
+                    accessibilityLabel={`Call ${seller.name} at ${seller.phone}`}
+                    accessibilityRole="link"
+                    onPress={() => void Linking.openURL(`tel:${seller.phone!.replace(/\s/g, "")}`)}
+                    style={styles.detailRow}
+                  >
+                    <Phone color={colors.neutral[400]} size={14} strokeWidth={1.5} />
+                    <Text style={styles.phone}>{seller.phone}</Text>
+                  </Pressable>
+                ) : null}
               </View>
             </View>
-          </View>
+          ))}
         </Section>
 
         <Section title="Payment summary">
@@ -299,11 +324,13 @@ const styles = StyleSheet.create({
   quantity: { ...type.bodySm, color: colors.neutral[500], marginTop: spacing.xs },
   itemPrice: { ...type.bodyMd, color: colors.neutral[800], fontFamily: "Inter_600SemiBold" },
   storeRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  storeBorder: { paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.neutral[100] },
   storeIcon: { width: 44, height: 44, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.primary[50] },
   storeBody: { flex: 1 },
   storeName: { ...type.bodyMd, color: colors.neutral[800], fontFamily: "Inter_600SemiBold" },
-  addressRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginTop: spacing.xs },
-  address: { flex: 1, ...type.bodySm, color: colors.neutral[500] },
+  detailRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginTop: spacing.xs },
+  address: { flex: 1, ...type.bodySm, color: colors.primary[700], textDecorationLine: "underline" },
+  phone: { ...type.bodySm, color: colors.neutral[600] },
   summaryRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
   summaryLabel: { ...type.bodyMd, color: colors.neutral[600] },
   summaryValue: { ...type.bodyMd, color: colors.neutral[800], fontFamily: "Inter_600SemiBold" },
